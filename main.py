@@ -98,6 +98,11 @@ def main() -> None:
         help="Custom decision threshold for coverage (e.g. 0.37 for 80% coverage)",
     )
     parser.add_argument(
+        "--gpu",
+        action="store_true",
+        help="Enable GPU acceleration (NVIDIA CUDA or AMD DirectML)",
+    )
+    parser.add_argument(
         "--all", action="store_true", help="Execute complete pipeline end-to-end"
     )
     parser.add_argument(
@@ -136,11 +141,11 @@ def main() -> None:
 
     if args.all or args.train_pytorch:
         print("\n>>> STEP 3: PyTorch Deep Learning Neural Network Training")
-        train_pytorch_model(file_path=args.file)
+        train_pytorch_model(file_path=args.file, use_gpu=args.gpu)
 
     if args.all or args.evaluate:
         print("\n>>> STEP 4: Master Evaluation & Dashboard Generation")
-        run_full_evaluation(file_path=args.file)
+        run_full_evaluation(file_path=args.file, use_gpu=args.gpu)
 
     if args.all or args.demo:
         print("\n>>> STEP 5: Real-Time Underwriter Inference Demonstration")

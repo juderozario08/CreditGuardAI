@@ -24,6 +24,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 
+from src.device import get_compute_device
 from src.preprocess import prepare_data
 from src.train_pytorch import CreditDefaultMLP
 
@@ -37,7 +38,9 @@ plt.rcParams["font.size"] = 10
 
 
 def run_full_evaluation(
-    file_path: str | None = None, output_dir: str = "figures"
+    file_path: str | None = None,
+    output_dir: str = "figures",
+    use_gpu: bool = False,
 ) -> pd.DataFrame:
     os.makedirs(output_dir, exist_ok=True)
     _, X_test, _, y_test, feature_names, _ = prepare_data(file_path=file_path)
@@ -53,13 +56,13 @@ def run_full_evaluation(
         if os.path.exists(p):
             models[display_name] = joblib.load(p)
 
+    device, _ = get_compute_device(use_gpu=use_gpu)
     pytorch_path = os.path.join("models", "pytorch_credit_model.pth")
     pytorch_model = None
     if os.path.exists(pytorch_path):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         pytorch_model = CreditDefaultMLP(in_features=X_test.shape[1]).to(device)
         pytorch_model.load_state_dict(
-            torch.load(pytorch_path, weights_only=True, map_location=device)
+            torch.load(pytorch_path, weights_only=False, map_location="cpu")
         )
         pytorch_model.eval()
 
@@ -82,7 +85,6 @@ def run_full_evaluation(
         }
 
     if pytorch_model is not None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         with torch.no_grad():
             t_X = torch.tensor(X_test, dtype=torch.float32).to(device)
             logits = pytorch_model(t_X)
@@ -248,4 +250,9 @@ def run_full_evaluation(
 
 
 if __name__ == "__main__":
-    run_full_evaluation()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gpu", action="store_true")
+    args = parser.parse_args()
+    run_full_evaluation(use_gpu=args.gpu)

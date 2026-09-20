@@ -48,6 +48,12 @@ Loads the data, trains all models, prints the benchmark scoreboard, and saves al
 python main.py --all
 ```
 
+#### Enable GPU Acceleration (NVIDIA or AMD Radeon)
+Automatically uses your GPU (NVIDIA CUDA or AMD Radeon via DirectML) when passed, or defaults to multi-core CPU:
+```bash
+python main.py --all --gpu
+```
+
 #### Test a Real-Time Applicant (Demo)
 Evaluates a sample applicant and outputs an instant risk score and decision:
 ```bash

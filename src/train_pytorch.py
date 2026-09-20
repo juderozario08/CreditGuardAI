@@ -18,6 +18,7 @@ from sklearn.metrics import (
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
+from src.device import get_compute_device
 from src.preprocess import prepare_data
 
 
@@ -62,6 +63,7 @@ def train_pytorch_model(
     batch_size: int = 256,
     learning_rate: float = 0.001,
     save_path: str = "models/pytorch_credit_model.pth",
+    use_gpu: bool = False,
 ) -> tuple[
     CreditDefaultMLP,
     dict[str, float],
@@ -70,12 +72,8 @@ def train_pytorch_model(
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     X_train, X_test, y_train, y_test, _, _ = prepare_data(file_path=file_path)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if device.type == "cpu":
-        torch.set_num_threads(os.cpu_count() or 4)
-    print(
-        f"\n[PyTorch] Running training on device: {device} ({torch.get_num_threads()} threads)"
-    )
+    device, device_desc = get_compute_device(use_gpu=use_gpu)
+    print(f"\n[PyTorch] Running training on: {device_desc}")
 
     train_dataset = CreditDataset(X_train, y_train)
     test_dataset = CreditDataset(X_test, y_test)
@@ -153,7 +151,7 @@ def train_pytorch_model(
 
         if val_auc > best_val_auc:
             best_val_auc = val_auc
-            torch.save(model.state_dict(), save_path)
+            torch.save({k: v.cpu() for k, v in model.state_dict().items()}, save_path)
             patience_counter = 0
         else:
             patience_counter += 1
@@ -163,7 +161,7 @@ def train_pytorch_model(
                 )
                 break
 
-    model.load_state_dict(torch.load(save_path, weights_only=True))
+    model.load_state_dict(torch.load(save_path, map_location="cpu", weights_only=False))
     model.eval()
 
     with torch.no_grad():
@@ -195,4 +193,9 @@ def train_pytorch_model(
 
 
 if __name__ == "__main__":
-    train_pytorch_model()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gpu", action="store_true")
+    args = parser.parse_args()
+    train_pytorch_model(use_gpu=args.gpu)
