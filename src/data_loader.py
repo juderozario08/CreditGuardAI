@@ -7,12 +7,12 @@ import pandas as pd
 def load_raw_data(file_path: str | None = None) -> pd.DataFrame:
     if file_path is None:
         candidates = [
-            "default of credit card clients.csv",
             os.path.join("data", "default of credit card clients.csv"),
-            "default of credit card clients.xls",
             os.path.join("data", "default of credit card clients.xls"),
-            "default of credit card clients.xlsx",
             os.path.join("data", "default of credit card clients.xlsx"),
+            "default of credit card clients.csv",
+            "default of credit card clients.xls",
+            "default of credit card clients.xlsx",
         ]
         for candidate in candidates:
             if os.path.exists(candidate):
@@ -24,7 +24,11 @@ def load_raw_data(file_path: str | None = None) -> pd.DataFrame:
             )
 
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Specified data file not found: {file_path}")
+        data_path = os.path.join("data", file_path)
+        if os.path.exists(data_path):
+            file_path = data_path
+        else:
+            raise FileNotFoundError(f"Specified data file not found: {file_path}")
 
     ext = Path(file_path).suffix.lower()
     print(f"[DataLoader] Ingesting dataset from: {file_path} (Format: {ext})")

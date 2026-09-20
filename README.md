@@ -70,10 +70,10 @@ python main.py --tune
 CreditGuard AI automatically supports both formats:
 ```bash
 # Using CSV:
-python main.py --file "default of credit card clients.csv"
+python main.py --file "data/default of credit card clients.csv"
 
 # Using Excel:
-python main.py --file "default of credit card clients.xls"
+python main.py --file "data/default of credit card clients.xls"
 ```
 
 #### Run Individual Steps
