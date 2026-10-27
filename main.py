@@ -95,7 +95,7 @@ def main() -> None:
         "--threshold",
         type=float,
         default=0.50,
-        help="Custom decision threshold for coverage (e.g. 0.37 for 80% coverage)",
+        help="Custom decision threshold for coverage (e.g. 0.37 for 80%% coverage)",
     )
     parser.add_argument(
         "--gpu",
